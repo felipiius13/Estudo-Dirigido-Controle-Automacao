@@ -1,0 +1,62 @@
+# Título do Notebook: Simulação Computacional - Capítulo 6
+
+# Importação das bibliotecas
+import control as ct
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Sistema G(s) = 1 / (s * (s+1) * (s+2))
+# O polinômio característico de malha fechada é s^3 + 3s^2 + 2s + K = 0
+G = ct.tf([1], [1, 3, 2, 0])
+
+# Caso 1: K = 3 (Estável)
+# Polinômio: s^3 + 3s^2 + 2s + 3 = 0
+K1 = 3
+T1 = ct.feedback(K1 * ct.tf([1], [1, 3, 2]), 1)
+polos1 = ct.poles(T1)
+
+# Caso 2: K = 6 (Marginalmente Estável - Limite de Routh)
+# Polinômio: s^3 + 3s^2 + 2s + 6 = 0
+K2 = 6
+T2 = ct.feedback(K2 * ct.tf([1], [1, 3, 2]), 1)
+polos2 = ct.poles(T2)
+
+# Caso 3: K = 10 (Instável)
+# Polinômio: s^3 + 3s^2 + 2s + 10 = 0
+K3 = 10
+T3 = ct.feedback(K3 * ct.tf([1], [1, 3, 2]), 1)
+polos3 = ct.poles(T3)
+
+# Plot dos polos no plano 's'
+plt.figure(figsize=(8, 6))
+ct.pzmap(T1, plot=True, title='Localização dos Polos para Diferentes Ganhos (K)')
+ct.pzmap(T2, plot=True)
+ct.pzmap(T3, plot=True)
+# Adicionar legendas manualmente pois pzmap não suporta nativamente
+plt.scatter(np.real(polos1), np.imag(polos1), marker='x', color='blue', label=f'K={K1} (Estável)')
+plt.scatter(np.real(polos2), np.imag(polos2), marker='o', color='green', label=f'K={K2} (Marg. Estável)')
+plt.scatter(np.real(polos3), np.imag(polos3), marker='^', color='red', label=f'K={K3} (Instável)')
+plt.legend()
+plt.show()
+
+print(f"Polos para K={K1}: {np.round(polos1, 2)}")
+print(f"Polos para K={K2}: {np.round(polos2, 2)}")
+print(f"Polos para K={K3}: {np.round(polos3, 2)}")
+
+# Simulação da resposta ao degrau
+t = np.linspace(0, 15, 1000)
+_, y1 = ct.step_response(T1, t)
+_, y2 = ct.step_response(T2, t)
+_, y3 = ct.step_response(T3, t)
+
+plt.figure(figsize=(12, 6))
+plt.plot(t, y1, label=f'K={K1} (Estável)')
+plt.plot(t, y2, label=f'K={K2} (Marg. Estável)')
+plt.plot(t, y3, label=f'K={K3} (Instável)')
+plt.ylim(-2, 3)
+plt.title('Resposta ao Degrau vs. Estabilidade')
+plt.xlabel('Tempo (s)')
+plt.ylabel('Amplitude')
+plt.legend()
+plt.grid()
+plt.show()
